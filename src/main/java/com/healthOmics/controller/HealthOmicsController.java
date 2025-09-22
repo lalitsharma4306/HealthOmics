@@ -66,4 +66,10 @@ public class HealthOmicsController {
 
         return ResponseEntity.status(201).body(response);
     }
+    @PostMapping("/createPrivateWorkFlow")
+    public String createWorkflow(
+            @RequestParam String name,
+            @RequestParam String s3Uri) {
+        return healthOmicsService.createPrivateWorkflow(name, s3Uri);
+    }
 }

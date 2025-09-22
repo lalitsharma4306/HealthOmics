@@ -122,4 +122,63 @@ public class HealthOmicsService {
 //        log.info("response : " + response);
         return response;
     }
+//    public String createPrivateWorkflow(String workflowName, String s3Uri) {
+//        // Define parameters template
+//        Map<String, WorkflowParameter> parameterTemplate = Map.of(
+//                "input_file", WorkflowParameter.builder()
+//                        .description("S3 path to the input FASTQ file")
+//                        .optional(false)
+//                        .build(),
+//                "output_dir", WorkflowParameter.builder()
+//                        .description("S3 output directory for results")
+//                        .optional(false)
+//                        .build()
+//        );
+//
+//        // Build request
+//        CreateWorkflowRequest request = CreateWorkflowRequest.builder()
+//                .name(workflowName)
+//                .definitionUri(s3Uri)
+//                .parameterTemplate(parameterTemplate)
+//                .build();
+//
+//        // Call API
+//        CreateWorkflowResponse response = omicsClient.createWorkflow(request);
+//
+//        return response.arn(); // Return Workflow ARN
+//    }
+
+
+    public String createPrivateWorkflow(String workflowName, String s3Uri) {
+        try {
+            Map<String, WorkflowParameter> parameterTemplate = Map.of(
+                    "input_file", WorkflowParameter.builder()
+                            .description("Input FASTQ file")
+                            .optional(false)   // mark as required/optional
+                            .build(),
+                    "output_dir", WorkflowParameter.builder()
+                            .description("Output directory")
+                            .optional(true)
+                            .build()
+            );
+            CreateWorkflowRequest request = CreateWorkflowRequest.builder()
+                    .name("my-private-workflow")
+                    .description("Private workflow for genomic analysis")
+                    .engine("WDL")  // or CWL / NEXTFLOW
+                    .definitionUri(s3Uri)
+                    .parameterTemplate(parameterTemplate)
+                    .build();
+
+            CreateWorkflowResponse response = omicsClient.createWorkflow(request);
+
+            System.out.println("Workflow ARN: " + response.arn());
+            return response.arn();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.info(e.getMessage());
+            return e.getMessage();
+        }
+    }
+
 }
