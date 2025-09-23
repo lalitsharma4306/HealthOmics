@@ -90,10 +90,10 @@ public class HealthOmicsController {
         healthOmicsService.updateWorkflow(dto);
         return ResponseEntity.ok("Workflow update request submitted successfully");
     }
-    @PostMapping("/createPrivateWorkFlow")
-    public String createWorkflow(
-            @RequestParam String name,
-            @RequestParam String s3Uri) {
-        return healthOmicsService.createPrivateWorkflow(name, s3Uri);
-    }
+//    @PostMapping("/createPrivateWorkFlow")
+//    public String createWorkflow(
+//            @RequestParam String name,
+//            @RequestParam String s3Uri) {
+//        return healthOmicsService.createPrivateWorkflow(name, s3Uri);
+//    }
 }
