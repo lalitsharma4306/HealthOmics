@@ -241,7 +241,8 @@ public class HealthOmicsService {
 
         return response;
     }
-//    public UpdateWorkflowResponse updateWorkflow(String workflowIdOrArn, String newDescription) {
+
+    //    public UpdateWorkflowResponse updateWorkflow(String workflowIdOrArn, String newDescription) {
 //        UpdateWorkflowRequest request = UpdateWorkflowRequest.builder()
 //                .id(workflowIdOrArn)   // can be workflowId or full ARN
 //                .description(newDescription)
@@ -253,34 +254,34 @@ public class HealthOmicsService {
 //
 //        return response;
 //    }
-public UpdateWorkflowResponse updateWorkflow(UpdateWorkflowRequestDto dto) {
+    public UpdateWorkflowResponse updateWorkflow(UpdateWorkflowRequestDto dto) {
 
-    UpdateWorkflowRequest.Builder builder = UpdateWorkflowRequest.builder()
-            .id(dto.getWorkflowId()); // Workflow ID is mandatory
+        UpdateWorkflowRequest.Builder builder = UpdateWorkflowRequest.builder()
+                .id(dto.getWorkflowId()); // Workflow ID is mandatory
 
-    if (dto.getName() != null && !dto.getName().isBlank()) {
-        builder.name(dto.getName());
-    }
-    if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
-        builder.description(dto.getDescription());
-    }
-    if (dto.getReadmeMarkdown() != null && !dto.getReadmeMarkdown().isBlank()) {
-        builder.readmeMarkdown(dto.getReadmeMarkdown());
-    }
-    if (dto.getStorageCapacity() != null) {
-        builder.storageCapacity(dto.getStorageCapacity());
-    }
-    if (dto.getStorageType() != null && !dto.getStorageType().isBlank()) {
-        builder.storageType(dto.getStorageType()); // STATIC or DYNAMIC
-    }
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            builder.name(dto.getName());
+        }
+        if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
+            builder.description(dto.getDescription());
+        }
+        if (dto.getReadmeMarkdown() != null && !dto.getReadmeMarkdown().isBlank()) {
+            builder.readmeMarkdown(dto.getReadmeMarkdown());
+        }
+        if (dto.getStorageCapacity() != null) {
+            builder.storageCapacity(dto.getStorageCapacity());
+        }
+        if (dto.getStorageType() != null && !dto.getStorageType().isBlank()) {
+            builder.storageType(dto.getStorageType()); // STATIC or DYNAMIC
+        }
 
-    UpdateWorkflowResponse response = omicsClient.updateWorkflow(builder.build());
+        UpdateWorkflowResponse response = omicsClient.updateWorkflow(builder.build());
 
-    log.info("Workflow updated: id={}, name={}, description={}",
-            dto.getWorkflowId(), dto.getName(), dto.getDescription());
+        log.info("Workflow updated: id={}, name={}, description={}",
+                dto.getWorkflowId(), dto.getName(), dto.getDescription());
 
-    return response;
-}
+        return response;
+    }
 
     private File convertToFile(MultipartFile file, String fileName) throws IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + fileName);
@@ -288,5 +289,17 @@ public UpdateWorkflowResponse updateWorkflow(UpdateWorkflowRequestDto dto) {
             fos.write(file.getBytes());
         }
         return convFile;
+    }
+    public DeleteWorkflowResponse deleteWorkflow(String workflowId) {
+
+        DeleteWorkflowRequest request = DeleteWorkflowRequest.builder()
+                .id(workflowId) // Workflow ID (required)
+                .build();
+
+        DeleteWorkflowResponse response = omicsClient.deleteWorkflow(request);
+
+        log.info("Workflow deleted: id={}", workflowId);
+
+        return response;
     }
 }

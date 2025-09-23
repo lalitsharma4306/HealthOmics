@@ -28,7 +28,8 @@ public class HealthOmicsController {
     private CreateAnnotationStoreExample createAnnotationStoreExample;
     @Autowired
     private HealthOmicsService healthOmicsService;
-//    @GetMapping("/createAnnotationStore")
+
+    //    @GetMapping("/createAnnotationStore")
 //    public ResponseEntity<?> createAnnotationStore(){
 //        return new ResponseEntity<>(createAnnotationStoreExample.createAnnotationStore(), HttpStatus.OK);
 //    }
@@ -78,22 +79,32 @@ public class HealthOmicsController {
         try {
             CreateWorkflowResponse workflowWithZIP = healthOmicsService.createWorkflowWithZIP(name, file);
 //            return ResponseEntity.status(201).body(workflowWithZIP);
-            log.info("workflowWithZIP response : "+workflowWithZIP.toString());
+            log.info("workflowWithZIP response : " + workflowWithZIP.toString());
             return ResponseEntity.ok(workflowWithZIP.toString());
         } catch (Exception e) {
             return ResponseEntity.status(422).body("❌ Failed to create workflow: " + e.getMessage());
         }
     }
+
     @PutMapping("/workflows")
     public ResponseEntity<String> updateWorkflow(@RequestBody UpdateWorkflowRequestDto dto) {
         log.info("Received update request for workflow: {}", dto);
         healthOmicsService.updateWorkflow(dto);
         return ResponseEntity.ok("Workflow update request submitted successfully");
     }
-//    @PostMapping("/createPrivateWorkFlow")
+
+    //    @PostMapping("/createPrivateWorkFlow")
 //    public String createWorkflow(
 //            @RequestParam String name,
 //            @RequestParam String s3Uri) {
 //        return healthOmicsService.createPrivateWorkflow(name, s3Uri);
 //    }
+    @DeleteMapping("/{workflowId}")
+    public ResponseEntity<String> deleteWorkflow(@PathVariable String workflowId) {
+        log.info("Received delete request for workflowId={}", workflowId);
+
+        healthOmicsService.deleteWorkflow(workflowId);
+
+        return ResponseEntity.accepted().body("Workflow deletion request submitted successfully");
+    }
 }
