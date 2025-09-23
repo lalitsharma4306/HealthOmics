@@ -2,6 +2,8 @@ package com.healthOmics.serviceImpl;
 
 //import com.amazonaws.services.s3.AmazonS3;
 //import com.amazonaws.services.s3.model.PutObjectRequest;
+
+import com.healthOmics.dto.UpdateWorkflowRequestDto;
 import com.healthOmics.dto.request.WorkflowParameterDto;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -239,6 +241,46 @@ public class HealthOmicsService {
 
         return response;
     }
+//    public UpdateWorkflowResponse updateWorkflow(String workflowIdOrArn, String newDescription) {
+//        UpdateWorkflowRequest request = UpdateWorkflowRequest.builder()
+//                .id(workflowIdOrArn)   // can be workflowId or full ARN
+//                .description(newDescription)
+//                .build();
+//
+//        UpdateWorkflowResponse response = omicsClient.updateWorkflow(request);
+//
+//        log.info("Workflow updated: {}", response);
+//
+//        return response;
+//    }
+public UpdateWorkflowResponse updateWorkflow(UpdateWorkflowRequestDto dto) {
+
+    UpdateWorkflowRequest.Builder builder = UpdateWorkflowRequest.builder()
+            .id(dto.getWorkflowId()); // Workflow ID is mandatory
+
+    if (dto.getName() != null && !dto.getName().isBlank()) {
+        builder.name(dto.getName());
+    }
+    if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
+        builder.description(dto.getDescription());
+    }
+    if (dto.getReadmeMarkdown() != null && !dto.getReadmeMarkdown().isBlank()) {
+        builder.readmeMarkdown(dto.getReadmeMarkdown());
+    }
+    if (dto.getStorageCapacity() != null) {
+        builder.storageCapacity(dto.getStorageCapacity());
+    }
+    if (dto.getStorageType() != null && !dto.getStorageType().isBlank()) {
+        builder.storageType(dto.getStorageType()); // STATIC or DYNAMIC
+    }
+
+    UpdateWorkflowResponse response = omicsClient.updateWorkflow(builder.build());
+
+    log.info("Workflow updated: id={}, name={}, description={}",
+            dto.getWorkflowId(), dto.getName(), dto.getDescription());
+
+    return response;
+}
 
     private File convertToFile(MultipartFile file, String fileName) throws IOException {
         File convFile = new File(System.getProperty("java.io.tmpdir") + "/" + fileName);

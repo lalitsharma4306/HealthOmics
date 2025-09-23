@@ -1,6 +1,7 @@
 package com.healthOmics.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healthOmics.dto.UpdateWorkflowRequestDto;
 import com.healthOmics.dto.request.WorkflowParameterDto;
 import com.healthOmics.serviceImpl.CreateAnnotationStoreExample;
 import com.healthOmics.serviceImpl.HealthOmicsService;
@@ -82,5 +83,11 @@ public class HealthOmicsController {
         } catch (Exception e) {
             return ResponseEntity.status(422).body("❌ Failed to create workflow: " + e.getMessage());
         }
+    }
+    @PutMapping("/workflows")
+    public ResponseEntity<String> updateWorkflow(@RequestBody UpdateWorkflowRequestDto dto) {
+        log.info("Received update request for workflow: {}", dto);
+        healthOmicsService.updateWorkflow(dto);
+        return ResponseEntity.ok("Workflow update request submitted successfully");
     }
 }
