@@ -1,6 +1,7 @@
 package com.healthOmics.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healthOmics.dto.RunWorkflowRequestDto;
 import com.healthOmics.dto.UpdateWorkflowRequestDto;
 import com.healthOmics.dto.request.WorkflowParameterDto;
 import com.healthOmics.serviceImpl.CreateAnnotationStoreExample;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.omics.model.CreateWorkflowResponse;
+import software.amazon.awssdk.services.omics.model.StartRunResponse;
 import software.amazon.awssdk.services.omics.model.WorkflowParameter;
 
 import java.util.Map;
@@ -106,5 +108,55 @@ public class HealthOmicsController {
         healthOmicsService.deleteWorkflow(workflowId);
 
         return ResponseEntity.accepted().body("Workflow deletion request submitted successfully");
+    }
+    @PostMapping("/run")
+    public ResponseEntity<?> runWorkflow(@RequestParam String workflowId,
+                                         @RequestParam String fastqPath,
+                                         @RequestParam String roleArn,
+                                         @RequestParam String outputPath) {
+        String runId = healthOmicsService.runWorkflow(workflowId, fastqPath, roleArn, outputPath);
+        return ResponseEntity.ok("Workflow started with RunId: " + runId);
+    }
+
+    // Check Status
+    @GetMapping("/status/{runId}")
+    public ResponseEntity<?> checkStatus(@PathVariable String runId) {
+        String status = healthOmicsService.getRunStatus(runId);
+        return ResponseEntity.ok("Run " + runId + " status: " + status);
+    }
+    @PostMapping("/runWorkflow")
+    public ResponseEntity<?> runWorkflow(@RequestBody RunWorkflowRequestDto dto) {
+        try {
+//            Map<String, Document> params = new HashMap<>();
+//            params.put("hello_workflow.input_fastq", Document.fromString(dto.getFastqS3Path()));
+//
+//            StartRunRequest request = StartRunRequest.builder()
+//                    .workflowId(dto.getWorkflowId())
+//                    .roleArn(dto.getRoleArn())
+//                    .outputUri(dto.getOutputS3Path())
+//                    .name(dto.getRunName())
+//                    .requestId(dto.getRunName() + "-req")
+//                    .parameters(params)
+//                    .logLevel("ALL")
+//                    .retentionMode("REMOVE")
+//                    .storageType("DYNAMIC")
+//                    .build();
+//
+//            StartRunResponse response = omicsClient.startRun(request);
+//
+//            Map<String, Object> result = new HashMap<>();
+//            result.put("runId", response.id());
+//            result.put("uuid", response.uuid());
+//            result.put("status", response.status());
+//            result.put("outputUri", response.runOutputUri());
+//
+//            return ResponseEntity.ok(result);
+            StartRunResponse startRunResponse = healthOmicsService.runWorkflowWithBody(dto.getWorkflowId(), dto.getRoleArn(), dto.getFastqS3Path(), dto.getOutputS3Path(), dto.getRunName());
+            return ResponseEntity.ok("Workflow started with RunId: " + startRunResponse.id());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }

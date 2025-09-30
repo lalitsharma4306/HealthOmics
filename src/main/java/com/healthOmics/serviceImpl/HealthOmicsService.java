@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.omics.OmicsClient;
 import software.amazon.awssdk.services.omics.model.CreateWorkflowRequest.Builder;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -67,12 +69,13 @@ public class HealthOmicsService {
 //
 //        CreateWorkflowResponse response = omicsClient.createWorkflow(awsRequest.build());
 //
-////        CreateWorkflowResponse response = new CreateWorkflowResponse();
-////        response.arn();
-////        response.setId(workflow.id());
-////        response.setStatus(workflow.statusAsString());
-////        response.setTags(workflow.tags());
-////        response.setUuid(workflow.uuid());
+
+    /// /        CreateWorkflowResponse response = new CreateWorkflowResponse();
+    /// /        response.arn();
+    /// /        response.setId(workflow.id());
+    /// /        response.setStatus(workflow.statusAsString());
+    /// /        response.setTags(workflow.tags());
+    /// /        response.setUuid(workflow.uuid());
 //
 //        return response;
 //    }
@@ -191,20 +194,21 @@ public class HealthOmicsService {
 //                ;
 //        Map<String, WorkflowParameter> workflowParameterMap = null;
 //
-////        if (parameterTemplate != null) {
-////            workflowParameterMap = parameterTemplate.entrySet().stream()
-////                    .collect(Collectors.toMap(
-////                            Map.Entry::getKey,
-////                            e -> WorkflowParameter.builder()
-////                                    .description(e.getValue().getDescription())
-////                                    .optional(e.getValue().getOptional())
-////                                    .build()
-////                    ));
-////        }
-////
-////        if (parameterTemplate != null) {
-////            requestBuilder.parameterTemplate(workflowParameterMap);
-////        }
+
+    /// /        if (parameterTemplate != null) {
+    /// /            workflowParameterMap = parameterTemplate.entrySet().stream()
+    /// /                    .collect(Collectors.toMap(
+    /// /                            Map.Entry::getKey,
+    /// /                            e -> WorkflowParameter.builder()
+    /// /                                    .description(e.getValue().getDescription())
+    /// /                                    .optional(e.getValue().getOptional())
+    /// /                                    .build()
+    /// /                    ));
+    /// /        }
+    /// /
+    /// /        if (parameterTemplate != null) {
+    /// /            requestBuilder.parameterTemplate(workflowParameterMap);
+    /// /        }
 //        log.info("requestBuilder : " + requestBuilder);
 //        CreateWorkflowResponse response = omicsClient.createWorkflow(requestBuilder.build());
 //        log.info("response : " + response);
@@ -290,6 +294,7 @@ public class HealthOmicsService {
         }
         return convFile;
     }
+
     public DeleteWorkflowResponse deleteWorkflow(String workflowId) {
 
         DeleteWorkflowRequest request = DeleteWorkflowRequest.builder()
@@ -302,4 +307,115 @@ public class HealthOmicsService {
 
         return response;
     }
+
+    public String runWorkflow(String workflowId, String fastqS3Path, String roleArn, String outputS3Path) {
+        // Input parameters as Map
+        Map<String, Document> params = new HashMap<>();
+        params.put("hello_fastq.input_fastq", Document.fromString(fastqS3Path));
+        Document paramsDocument = Document.fromString("{\"hello_fastq.input_fastq\": \"" + fastqS3Path + "\"}");
+
+        StartRunResponse runResponse = omicsClient.startRun(
+                StartRunRequest.builder()
+                        .workflowId(workflowId)
+                        .roleArn(roleArn)
+                        .parameters(paramsDocument) // ✅ Map pass किया
+                        .outputUri(outputS3Path)
+                        .build()
+        );
+
+        return runResponse.id();
+    }
+
+    public String getRunStatus(String runId) {
+        GetRunResponse runDetails = omicsClient.getRun(
+                GetRunRequest.builder()
+                        .id(runId)
+                        .build()
+        );
+        return runDetails.statusAsString();
+    }
+
+    //    public StartRunResponse startRun(
+//            String roleArn,
+//            String workflowId,
+//            String outputUri,
+//            Map<String, Object> parameters,
+//            String storageType,
+//            Integer storageCapacity,
+//            String requestId,
+//            String retentionMode,
+//            Map<String, String> tags
+//    ) {
+//        try {
+//            StartRunRequest.Builder requestBuilder = StartRunRequest.builder()
+//                    .roleArn(roleArn)
+//                    .workflowId(workflowId)
+//                    .outputUri(outputUri);
+//
+//            if (parameters != null && !parameters.isEmpty()) {
+//                requestBuilder.parameters(parameters);
+//            }
+//            if (storageType != null) {
+//                requestBuilder.storageType(storageType);
+//            }
+//            if (storageCapacity != null) {
+//                requestBuilder.storageCapacity(storageCapacity);
+//            }
+//            if (requestId != null) {
+//                requestBuilder.requestId(requestId);
+//            }
+//            if (retentionMode != null) {
+//                requestBuilder.retentionMode(retentionMode);
+//            }
+//            if (tags != null && !tags.isEmpty()) {
+//                requestBuilder.tags(tags);
+//            }
+//
+//            StartRunResponse response = omicsClient.startRun(requestBuilder.build());
+//            System.out.println("Run started successfully: " + response.id());
+//            return response;
+//
+//        } catch (Exception e) {
+//            System.err.println("Failed to start run: " + e.getMessage());
+//            throw e;
+//        }
+//    }
+    public StartRunResponse runWorkflowWithBody(
+            String workflowId,
+            String roleArn,
+            String fastqS3Path,
+            String outputS3Path,
+            String runName) {
+
+        // Parameters map (FASTQ file input)
+        Map<String, Document> params = new HashMap<>();
+        params.put("hello_workflow.input_fastq", Document.fromString(fastqS3Path));
+        Document paramsDocument = Document.fromString("{\"hello_fastq.input_fastq\": \"" + fastqS3Path + "\"}");
+
+        // StartRun request
+        StartRunRequest request = StartRunRequest.builder()
+                .workflowId(workflowId)
+                .roleArn(roleArn)
+                .outputUri(outputS3Path)
+                .name(runName)                // Run का नाम
+//                .requestId(runName + "-req")  // unique idempotency token
+                .parameters(paramsDocument)           // ✅ अब सही
+                .logLevel("ALL")              // Logs CloudWatch में जाएँगे
+//                .retentionMode("REMOVE")      // पुराना data remove कर देगा
+//                .storageType("DYNAMIC")       // Auto-scale storage
+                .build();
+
+        // Call API
+        StartRunResponse response = omicsClient.startRun(request);
+
+        // Logs print करें
+        System.out.println("✅ Run started successfully!");
+        System.out.println("Run ID: " + response.id());
+        System.out.println("UUID: " + response.uuid());
+        System.out.println("Output URI: " + response.runOutputUri());
+        System.out.println("Status: " + response.status());
+
+        return response;
+    }
+
 }
