@@ -23,6 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
+@CrossOrigin("*")
 public class HealthOmicsController {
     private static final Logger log = LoggerFactory.getLogger(HealthOmicsController.class);
 
