@@ -390,7 +390,13 @@ public class HealthOmicsService {
         // Parameters map (FASTQ file input)
         Map<String, Document> params = new HashMap<>();
         params.put("hello_workflow.input_fastq", Document.fromString(fastqS3Path));
-        Document paramsDocument = Document.fromString("{\"hello_fastq.input_fastq\": \"" + fastqS3Path + "\"}");
+        Document paramsDocument = Document.fromString("{\n" +
+                "  \"reads\": \"s3://omics-fastqc-input/reads/*_{R1,R2}.fastq.gz\",\n" +
+                "  \"memory\": \"4 GB\",\n" +
+                "  \"cpus\": 2,\n" +
+                "  \"outdir\": \"s3://omics-fastqc-output/results/\",\n" +
+                "  \"fastqc_container\": \"public.ecr.aws/biocontainers/fastqc:0.11.9--0\"\n" +
+                "}");
 
         // StartRun request
         StartRunRequest request = StartRunRequest.builder()
